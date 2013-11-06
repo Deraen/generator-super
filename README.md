@@ -30,3 +30,5 @@ and I don't see that as particularly useful feature. (Use editor snippets or som
 3. Write additional cookbook
   1. How to configure Karma to use IEVMS for IE testing?
   2. And other useful Grunt stuff
+4. Heroku/Dokku deployment
+  1. Use buildpack which runs bower+grunt in addition to npm
