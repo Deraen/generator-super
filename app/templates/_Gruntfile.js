@@ -1,10 +1,10 @@
 module.exports = function (grunt) {
-    require('matchdep').filterDev('grunt-*').forEach(grunt.loadNpmTasks);
+    require('load-grunt-tasks')(grunt);
 
     var projectConfig = {<% if (node) { %>
-        backend: 'backend',<% } %>
+        backend: 'backend',<% } %><% if (bootstrap) { %>
         frontend: 'frontend',
-        dist: 'dist',<% if (mocha || karma) { %>
+        dist: 'dist',<% } %><% if (mocha || karma) { %>
         tests: 'test',<% } %>
         port: 8000
     };
@@ -18,7 +18,7 @@ module.exports = function (grunt) {
                 options: {
                     atBegin: true
                 }
-            },<% } %>
+            },<% } %><% if (bootstrap) { %>
             frontend: {
                 files: [
                     '{.tmp,<%%= project.frontend %>}/**/*.{html,css,js}'
@@ -26,7 +26,7 @@ module.exports = function (grunt) {
                 options: {
                     livereload: process.env.LRPORT || true,
                 }
-            },<% if (node) { %>
+            },<% } %><% if (node) { %>
             backend: {
                 files: ['<%%= project.backend %>/**/*.js'],
                 tasks: ['express:backend'],
@@ -40,20 +40,20 @@ module.exports = function (grunt) {
                 PORT: projectConfig.port,
                 NODE_ENV: 'development'
             },
-            dist: {
+            prod: {
                 NODE_ENV: 'production'
-            },
+            },<% if (mocha || karma) { %>
             test: {
                 NODE_ENV: 'test',
                 PORT: 3001
-            }
-        },
+            }<% } %>
+        },<% if (bootstrap) { %>
         preprocess: {
             dist: {
                 src: '<%%= project.frontend %>/index.html',
                 dest: '<%%= project.dist %>/index.html'
             }
-        },
+        },<% } %>
         express: {
             backend: {
                 options: {
@@ -63,24 +63,9 @@ module.exports = function (grunt) {
             }
         },
         clean: {
-            dist: {
-                files: [{
-                    dot: true,
-                    src: ['<%%= project.dist %>']
-                }]
-            },
-            heroku: {
-                // Remove files which should not be included in heroku dist
-                // e.g. whole project.frontend folder is unnecessary because
-                // files have been copied/minifed/etc into project.dist
-                // Dangerous? Yes, don't run this on working copy... Luckily everything is on git
-                files: [{
-                    dot: true,
-                    src: ['<%%= project.frontend %>'],
-                }]
-            },
-            server: '<%%= project.tmp %>'
-        },
+            dist: '<%%= project.dist %>',
+            server: '<%%= project.tmp %>',
+        },<% if (bootstrap) { %>
         less: {
             options: {
                 paths: [
@@ -150,6 +135,34 @@ module.exports = function (grunt) {
                 }]
             }
         },
+        rev: {
+            dist: {
+                files: {
+                    src: [
+                        '<%%= project.dist %>/scripts/**/*.js',
+                        '<%%= project.dist %>/styles/**/*.css',
+                        '<%%= project.dist %>/images/**/*.{png,jpg,jpeg,gif,webp,svg}',
+                        '<%%= project.dist %>/components/fonts/*',
+                    ]
+                }
+            }
+        },
+        copy: {
+            dist: {
+                files: [{
+                    expand: true,
+                    dot: true,
+                    cwd: '<%%= project.frontend %>',
+                    dest: '<%%= project.dist %>',
+                    src: [
+                        '*.{ico,txt}',
+                        '.htaccess',
+                        'images/**/*.{gif,webp,jpg,jpeg,png}',
+                        'components/bootstrap/fonts/*',
+                    ]
+                }]
+            },
+        },<% } %><% if (angular) { %>
         ngmin: {
             // Would be nice if usemin would generate this
             dist: {
@@ -161,56 +174,7 @@ module.exports = function (grunt) {
                     dest: '.tmp/concat/scripts'
                 }]
             }
-        },
-        rev: {
-            dist: {
-                files: {
-                    src: [
-                        '<%%= project.dist %>/scripts/**/*.js',
-                        '<%%= project.dist %>/styles/**/*.css',
-                        '<%%= project.dist %>/images/**/*.{png,jpg,jpeg,gif,webp,svg}',
-                        '<%%= project.dist %>/styles/fonts/*'
-                    ]
-                }
-            }
-        },
-        copy: {
-            server: {
-                files:[{
-                    expand: true,
-                    flatten: true,
-                    src: ['<%%= project.frontend %>/components/bootstrap/fonts/*'],
-                    dest: '.tmp/fonts/'
-                }]
-            },
-            dist: {
-                files: [{
-                    expand: true,
-                    dot: true,
-                    cwd: '<%%= project.frontend %>',
-                    dest: '<%%= project.dist %>',
-                    src: [
-                        '*.{ico,txt}',
-                        '.htaccess',
-                        'images/**/*.{gif,webp,jpg,jpeg,png}',
-                    ]
-                }, {
-                    expand: true,
-                    flatten: true,
-                    dest: '<%%= project.dist %>/fonts',
-                    src: ['<%%= project.frontend %>/components/bootstrap/fonts/*'],
-                }]
-            },
-        },
-        // Frontend tests (PhantomJS)
-        mocha: {
-            options: {
-                mocha: {
-                    reporter: 'spec',
-                },
-            },
-        },
-        // Backend tests
+        },<% } %><% if (mocha) { %>
         mochaTest: {
             options: {
                 reporter: 'spec',
@@ -218,23 +182,25 @@ module.exports = function (grunt) {
             unit: {
                 src: ['test/unit/**/*.js'],
             },
-        },
+        },<% } %><% if (karma) { %>
+        karma: {}
+        <% } %>
     });
 
     grunt.registerTask('dist', [
-        'env:dist',
-        'clean:dist',
-        'less:dist',
-        'preprocess',
+        'env:prod',
+        'clean:dist',<% if (bootstrap) { %>
+        'less:dist',<% } %>
+        'preprocess',<% if (bootstrap) { %>
         'useminPrepare',
         'cssmin',
         'htmlmin',
-        'concat',
-        'copy:dist',
+        'concat',<% } %>
+        'copy:dist',<% if (bootstrap) { %>
         'ngmin',
         'uglify',
         'rev',
-        'usemin',
+        'usemin',<% } %>
     ]);
 
     grunt.registerTask('server', [
@@ -244,24 +210,5 @@ module.exports = function (grunt) {
         'watch'
     ]);
 
-    grunt.registerTask('test', function() {
-        grunt.config('watch', {
-            test: {
-                files: [
-                    '<%%= project.backend %>/**/*.js',
-                    'test/**/*.js'
-                ],
-                tasks: ['mochaTest:unit'],
-                options: {
-                    atBegin: true,
-                },
-            },
-        });
-
-        grunt.task.run('env:test');
-        grunt.task.run('watch');
-    });
-
     grunt.registerTask('default', ['server']);
-    grunt.registerTask('heroku', ['dist', 'clean:heroku']);
 };

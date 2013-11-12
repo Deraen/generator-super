@@ -57,6 +57,9 @@ var prompts = {
       devDependencies: {
         'grunt-ngmin': '0.0.3',
       }
+    },
+    when: function(props) {
+      return props.bootstrap;
     }
   },
   mocha: {
@@ -76,6 +79,10 @@ var prompts = {
     }
   }
 };
+
+function indent(text, spaces) {
+  return text.replace(/\n/g, '\n  ');
+}
 
 var SuperGenerator = module.exports = function(args, options, config) {
   yeoman.generators.Base.apply(this, arguments);
@@ -99,12 +106,12 @@ SuperGenerator.prototype.askFor = function() {
   this.prompt(_.map(prompts, mapNames), function(props) {
     console.log(props);
     // FIXME: options with dependencies might be undefined
-    _.extend(this, {mocha: false, karma: false}, props);
+    _.extend(this, {mocha: false, angular: false, karma: false}, props);
 
     var dependencies = {};
     var devDependencies = {
       'grunt-contrib-watch': '~0.5.3',
-      'matchdep': '~0.3.0',
+      'load-grunt-tasks': '~0.2.0',
       'grunt': '~0.4.1',
       'grunt-contrib-copy': '~0.4.1',
       'grunt-env': '~0.4.0',
@@ -126,9 +133,9 @@ SuperGenerator.prototype.askFor = function() {
       }
     });
 
-    this.deps = JSON.stringify(dependencies, null, 4);
-    this.devDeps = JSON.stringify(devDependencies, null, 4);
-    this.bowerDeps = JSON.stringify(bowerDependencies, null, 4);
+    this.deps = indent(JSON.stringify(dependencies, null, 2));
+    this.devDeps = indent(JSON.stringify(devDependencies, null, 2));
+    this.bowerDeps = indent(JSON.stringify(bowerDependencies, null, 2));
 
     cb();
   }.bind(this));
