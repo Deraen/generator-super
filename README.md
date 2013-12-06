@@ -11,14 +11,15 @@ and I don't see that as particularly useful feature. (Use editor snippets or som
 
 ## Features
 
-- Grunt
-- Node.js backend (Express)
-  - Mocha + Chai.js tests
-- OR Proxy another backend
+- [x] Grunt
+- [x] Node.js
+- [ ] Express backend
+- [x] Mocha + Chai.js tests
+- [ ] OR Proxy another backend
   - e.g. forward calls to /api to Scala backend on localhost:3000
-- HTML5 template with Boostrap 3 LESS
-- AngularJS
-  - Karma tests
+- [ ] HTML5 template with Boostrap 3 LESS
+- [ ] AngularJS
+  - [ ] Karma tests
 
 ## Ideas
 

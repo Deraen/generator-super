@@ -1,6 +1,5 @@
 {
   "name": "package",
-  "version": "0.0.0",
-  "dependencies": <%= bowerDeps %>
+  "version": "0.0.0"<% if(bowerDeps) { %>,
+  "dependencies": <%= bowerDeps %><% } %>
 }
-

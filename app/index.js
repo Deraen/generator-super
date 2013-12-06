@@ -3,6 +3,9 @@ var path = require('path');
 var _ = require('lodash');
 var yeoman = require('yeoman-generator');
 
+var arrayRef = [];
+var push = arrayRef.push;
+
 var prompts = {
   name: {
     type: 'input',
@@ -12,7 +15,7 @@ var prompts = {
   bootstrap: {
     type: 'confirm',
     message: 'HTML5 template using Bootstrap 3 and LessCSS',
-    default: true,
+    default: false,
     bower: {
       dependencies: {
         'bootstrap': '~3.0.1',
@@ -32,13 +35,32 @@ var prompts = {
   },
   node: {
     type: 'confirm',
-    message: 'Enable NodeJS backend',
+    message: 'Enable NodeJS',
     default: true,
     npm: {
       dependencies: {
-        'express': '~3.4.4',
-        'lodash': '~2.2.1',
+        'lodash': '~2.4.1',
       }
+    },
+    files: {
+      'src/index.js': 'node/index.js',
+    }
+  },
+  express: {
+    type: 'confirm',
+    message: 'Enable Express backend',
+    default: false,
+    npm: {
+      dependencies: {
+        'express': '~3.4.6',
+      }
+    },
+    files: {
+      'src/index.js': 'node/index.express.js',
+      'src/config.js': 'node/config.js',
+    },
+    when: function(props) {
+      return props.node;
     }
   },
   proxy: {
@@ -66,6 +88,12 @@ var prompts = {
     type: 'confirm',
     message: 'Use Mocha+Chai.js for Node unittests',
     default: true,
+    npm: {
+      devDependencies: {
+        'grunt-mocha-test': '~0.8.1',
+        'chai': '~1.8.1',
+      },
+    },
     when: function(props) {
       return props.node;
     }
@@ -81,6 +109,7 @@ var prompts = {
 };
 
 function indent(text, spaces) {
+  if (!text) return '';
   return text.replace(/\n/g, '\n  ');
 }
 
@@ -120,22 +149,22 @@ SuperGenerator.prototype.askFor = function() {
     };
     var bowerDependencies = {};
 
-    var enabled = _.omit(props, function(v) { return v !== true; });
+    var enabledProps = _.omit(props, function(v) { return v !== true; });
+    console.log(enabledProps);
+
+    var enabled = _.map(enabledProps, function (v, k) { console.log(v, k); return prompts[k]; });
     console.log(enabled);
-    _(enabled).map(function(v, k) { return prompts[k]; }).each(function(promp) {
-      if (promp.npm) {
-        _.extend(dependencies, promp.npm.dependencies || {});
-        _.extend(devDependencies, promp.npm.devDependencies || {});
-      }
 
-      if (promp.bower) {
-        _.extend(bowerDependencies, promp.bower.dependencies || {});
-      }
-    });
+    this.files = _.merge.apply(null, _.pluck(enabled, 'files'));
 
-    this.deps = indent(JSON.stringify(dependencies, null, 2));
-    this.devDeps = indent(JSON.stringify(devDependencies, null, 2));
-    this.bowerDeps = indent(JSON.stringify(bowerDependencies, null, 2));
+    var deps = _.merge.apply(null, _.pluck(enabled, 'npm')) || {};
+    console.log(deps);
+    this.deps = indent(JSON.stringify(deps.dependencies, null, 2));
+    this.devDeps = indent(JSON.stringify(_.extend(devDependencies, deps.devDependencies), null, 2));
+
+    var bower = _.merge.apply(null, _.pluck(enabled, 'bower')) || {};
+    console.log(bower);
+    this.bowerDeps = indent(JSON.stringify(bower.dependencies, null, 2));
 
     cb();
   }.bind(this));
@@ -152,6 +181,11 @@ SuperGenerator.prototype.app = function() {
   this.template('_package.json', 'package.json');
   this.template('_bower.json', 'bower.json');
   this.template('_Gruntfile.js', 'Gruntfile.js');
+
+  console.log('files', this.files);
+  _.each(this.files, function(to, from) {
+    console.log(to, from);
+  });
 };
 
 SuperGenerator.prototype.projectfiles = function() {

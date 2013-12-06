@@ -1,6 +1,6 @@
 {
   "name": "<%= name %>",
-  "version": "0.0.1",
-  "dependencies": <%= deps %>,
-  "devDependencies": <%= devDeps %>
+  "version": "0.0.1"<% if(deps) { %>,
+  "dependencies": <%= deps %><% } %><% if(devDeps) { %>,
+  "devDependencies": <%= devDeps %><% } %>
 }
