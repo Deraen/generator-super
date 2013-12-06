@@ -20,6 +20,7 @@ and I don't see that as particularly useful feature. (Use editor snippets or som
 - [ ] HTML5 template with Boostrap 3 LESS
 - [ ] AngularJS
   - [ ] Karma tests
+  - [ ] Protractor?
 
 ## Ideas
 
@@ -33,3 +34,4 @@ and I don't see that as particularly useful feature. (Use editor snippets or som
   2. And other useful Grunt stuff
 4. Heroku/Dokku deployment
   1. Use buildpack which runs bower+grunt in addition to npm
+  2. Or grunt deploy task which builds frontend and pushes to separate repo so main repo won't be contaminated with unnecessary files
