@@ -56,8 +56,8 @@ var prompts = {
       }
     },
     files: {
-      'src/index.js': 'node/index.express.js',
-      'src/config.js': 'node/config.js',
+      'src/index.js': 'express/index.express.js',
+      'src/config.js': 'express/config.js',
     },
     when: function(props) {
       return props.node;
@@ -93,6 +93,9 @@ var prompts = {
         'grunt-mocha-test': '~0.8.1',
         'chai': '~1.8.1',
       },
+    },
+    files: {
+      'test/unit/example.js': 'test/unit/example.js',
     },
     when: function(props) {
       return props.node;
@@ -171,21 +174,14 @@ SuperGenerator.prototype.askFor = function() {
 };
 
 SuperGenerator.prototype.app = function() {
-  this.mkdir('app');
-  this.mkdir('app/templates');
-
-  if (this.node) {
-    this.mkdir('backend');
-  }
-
   this.template('_package.json', 'package.json');
   this.template('_bower.json', 'bower.json');
   this.template('_Gruntfile.js', 'Gruntfile.js');
 
   console.log('files', this.files);
-  _.each(this.files, function(to, from) {
-    console.log(to, from);
-  });
+  _.each(this.files, function(from, to) {
+    this.template(from, to);
+  }.bind(this));
 };
 
 SuperGenerator.prototype.projectfiles = function() {
